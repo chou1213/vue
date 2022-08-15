@@ -12,10 +12,17 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 
 let uid = 0
 
+/**
+ * @description: 给Vue的原型添加_init方法, Vue实例添加$options
+ * @param {*} Vue
+ * @return {*}
+ */
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
+    // Vue的实例
     const vm: Component = this
-    // a uid
+
+    // 每个Vue实例都有的uid
     vm._uid = uid++
 
     let startTag, endTag
@@ -43,12 +50,16 @@ export function initMixin (Vue: Class<Component>) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
+      // 开发环境
       initProxy(vm)
     } else {
+      // 生产环境，把Vue实例保存到实例的_rnderProxy
       vm._renderProxy = vm
     }
+
     // expose real self
     vm._self = vm
+
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)
@@ -65,6 +76,7 @@ export function initMixin (Vue: Class<Component>) {
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 
+    // 如果el存在，则调用$mount
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
     }

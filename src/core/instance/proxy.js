@@ -75,6 +75,11 @@ if (process.env.NODE_ENV !== 'production') {
     }
   }
 
+  /**
+   * @description: 给实例的_renderProxy赋值
+   * @param {*} vm Vue实例
+   * @return {*}
+   */
   initProxy = function initProxy (vm) {
     if (hasProxy) {
       // determine which proxy handler to use

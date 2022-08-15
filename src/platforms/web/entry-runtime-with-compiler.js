@@ -15,10 +15,12 @@ const idToTemplate = cached(id => {
 })
 
 const mount = Vue.prototype.$mount
-Vue.prototype.$mount = function (
-  el?: string | Element,
-  hydrating?: boolean
-): Component {
+
+/**
+ * @description: 重新Vue原型上的mount方法
+ * @return {*}
+ */
+Vue.prototype.$mount = function (el?: string | Element, hydrating?: boolean): Component {
   el = el && query(el)
 
   /* istanbul ignore if */

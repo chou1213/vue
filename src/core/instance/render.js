@@ -16,6 +16,11 @@ import VNode, { createEmptyVNode } from '../vdom/vnode'
 
 import { isUpdatingChildComponent } from './lifecycle'
 
+/**
+ * @description: 给实例添加_vnode,_staticTree,$slot,$scopedSlots,_c,$createElement,$attr,$listeners
+ * @param {*} vm
+ * @return {*}
+ */
 export function initRender (vm: Component) {
   vm._vnode = null // the root of the child tree
   vm._staticTrees = null // v-once cached trees
@@ -51,6 +56,11 @@ export function initRender (vm: Component) {
   }
 }
 
+/**
+ * @description: 给Vue的原型添加$nextTick,_render方法
+ * @param {*} Vue
+ * @return {*}
+ */
 export function renderMixin (Vue: Class<Component>) {
   // install runtime convenience helpers
   installRenderHelpers(Vue.prototype)

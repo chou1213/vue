@@ -18,6 +18,11 @@ import {
   defineReactive
 } from '../util/index'
 
+/**
+ * @description: 给Vue添加静态成员config, set, delete, nextTick, options, observable, util
+ * @param {*} Vue 构造函数
+ * @return {*}
+ */
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   const configDef = {}
@@ -46,12 +51,15 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.nextTick = nextTick
 
   // 2.6 explicit observable API
-  Vue.observable = <T>(obj: T): T => {
+  Vue.observable = <>(obj: T): T => {
     observe(obj)
     return obj
   }
 
+  // 添加options成员，并赋值为空对象
   Vue.options = Object.create(null)
+
+  // 在options添加components, directives, filters属性，并赋值为空对象
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
   })
@@ -60,6 +68,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue
 
+  // 把keep-alive组件合并到Vue.options.components
   extend(Vue.options.components, builtInComponents)
 
   initUse(Vue)

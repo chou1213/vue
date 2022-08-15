@@ -29,6 +29,11 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
+/**
+ * @description: 初始实例的生命周期，在实例添加$parent，$root，$children，$refs，_watcher，_inactive，_directInactive_isMounted，_isDestroyed，_isBeingDestroyed
+ * @param {*} vm Vue 实例
+ * @return {*}
+ */
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
@@ -55,6 +60,11 @@ export function initLifecycle (vm: Component) {
   vm._isBeingDestroyed = false
 }
 
+/**
+ * @description: 在Vue的原型上添加—_update，$forceUpdate,$destroy
+ * @param {*} Vue
+ * @return {*}
+ */
 export function lifecycleMixin (Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
@@ -329,6 +339,12 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+/**
+ * @description: 调用实例的钩子函数
+ * @param {*} vm
+ * @param {*} hook
+ * @return {*}
+ */
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()

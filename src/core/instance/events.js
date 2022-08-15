@@ -9,6 +9,11 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index'
 
+/**
+ * @description: 在Vue实例添加_evnet, _hasHookEvent
+ * @param {*} vm Vue构造函数
+ * @return {*}
+ */
 export function initEvents (vm: Component) {
   vm._events = Object.create(null)
   vm._hasHookEvent = false

@@ -3,6 +3,11 @@
 import { ASSET_TYPES } from 'shared/constants'
 import { isPlainObject, validateComponentName } from '../util/index'
 
+/**
+ * @description: 给Vue添加静态方法component, directive, filter
+ * @param {*} Vue
+ * @return {*}
+ */
 export function initAssetRegisters (Vue: GlobalAPI) {
   /**
    * Create asset registration methods.
