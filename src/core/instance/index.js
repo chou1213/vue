@@ -21,10 +21,19 @@ function Vue (options) {
   this._init(options)
 }
 
+// 初始化相关的方法
 initMixin(Vue)
+
+// 和状态相关的方法
 stateMixin(Vue)
+
+// 和事件相关的方法
 eventsMixin(Vue)
+
+// 和生命周期相关的方法
 lifecycleMixin(Vue)
+
+// 和渲染相关的方法
 renderMixin(Vue)
 
 export default Vue

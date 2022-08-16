@@ -13,11 +13,16 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 let uid = 0
 
 /**
- * @description: 给Vue的原型添加_init方法, Vue实例添加$options
+ * @description: 给Vue的原型添加_init
  * @param {*} Vue
  * @return {*}
  */
 export function initMixin (Vue: Class<Component>) {
+  /**
+   * @description: 给Vue实例添加_uid, _isVue, $options, _renderProxy, _self，调用了Vue原型上的$mount
+   * @param {*} options
+   * @return {*}
+   */
   Vue.prototype._init = function (options?: Object) {
     // Vue的实例
     const vm: Component = this

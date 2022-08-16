@@ -17,7 +17,7 @@ import VNode, { createEmptyVNode } from '../vdom/vnode'
 import { isUpdatingChildComponent } from './lifecycle'
 
 /**
- * @description: 给实例添加_vnode,_staticTree,$slot,$scopedSlots,_c,$createElement,$attr,$listeners
+ * @description: 给实例添加_vnode, _staticTree, $slot, $scopedSlots, _c ,$createElement, $attr, $listeners
  * @param {*} vm
  * @return {*}
  */
@@ -69,6 +69,10 @@ export function renderMixin (Vue: Class<Component>) {
     return nextTick(fn, this)
   }
 
+  /**
+   * 获取option.render的虚拟dom，并给虚拟dom设置parent，然后返回vnode
+   * @returns 返回option.render()的虚拟dom
+   */
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
     const { render, _parentVnode } = vm.$options
@@ -86,6 +90,10 @@ export function renderMixin (Vue: Class<Component>) {
     // render self
     let vnode
     try {
+      // 调用option.render函数
+      // render函数，可能是在实例化的时候定义，或者是通过template转成render
+      // render函数的this指向vm._renderProxy就是Vue实例
+      // 在定义render函数，第一个参数h，就是vm.$createElement，用来生成虚拟dom
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       handleError(e, vm, `render`)
@@ -119,6 +127,7 @@ export function renderMixin (Vue: Class<Component>) {
       vnode = createEmptyVNode()
     }
     // set parent
+    // 给虚拟dom设父虚拟dom
     vnode.parent = _parentVnode
     return vnode
   }

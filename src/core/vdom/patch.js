@@ -82,6 +82,11 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * @description: 把dom对象转成vnode
+   * @param {*} elm dom对象
+   * @return {*}
+   */
   function emptyNodeAt (elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
@@ -149,6 +154,7 @@ export function createPatchFunction (backend) {
     const children = vnode.children
     const tag = vnode.tag
     if (isDef(tag)) {
+      // 虚拟dom有tag
       if (process.env.NODE_ENV !== 'production') {
         if (data && data.pre) {
           creatingElmInVPre++
@@ -199,6 +205,7 @@ export function createPatchFunction (backend) {
         creatingElmInVPre--
       }
     } else if (isTrue(vnode.isComment)) {
+      // 虚拟dom是一个注释节点
       vnode.elm = nodeOps.createComment(vnode.text)
       insert(parentElm, vnode.elm, refElm)
     } else {
@@ -697,8 +704,17 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * @description: 把虚拟dom更新到页面上
+   * @param {*} oldVnode 接收dom对象 或 旧的虚拟dom
+   * @param {*} vnode 要更新的虚拟dom
+   * @param {*} hydrating
+   * @param {*} removeOnly
+   * @return {*}
+   */
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
     if (isUndef(vnode)) {
+      // 旧虚拟dom有值，新虚拟dom没有值，调用旧虚拟dom的销毁的钩子函数
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
     }
@@ -707,20 +723,25 @@ export function createPatchFunction (backend) {
     const insertedVnodeQueue = []
 
     if (isUndef(oldVnode)) {
+      // 旧虚拟dom不存在，标记为初始patch，
       // empty mount (likely as component), create new root element
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
+      // oldVnode存在
       const isRealElement = isDef(oldVnode.nodeType)
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
+        // oldVnode是虚拟节点，并且oldVnode和vnode是相同的节点
         // patch existing root node
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {
         if (isRealElement) {
+          // oldVnode是一个真实dom对象
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
+            // oldVnode是一个元素节点，并且有data-server-rendered属性，则移除data-server-rendered属性
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
           }

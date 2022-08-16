@@ -61,23 +61,31 @@ export function initLifecycle (vm: Component) {
 }
 
 /**
- * @description: 在Vue的原型上添加—_update，$forceUpdate,$destroy
+ * @description: 在Vue的原型上添加_update，$forceUpdate, $destroy
  * @param {*} Vue
  * @return {*}
  */
 export function lifecycleMixin (Vue: Class<Component>) {
+  /**
+   * @description: 把虚拟dom渲染到页面上
+   * @param {*} vnode 调用option.render()返回的虚拟dom
+   * @param {*} hydrating
+   * @return {*}
+   */
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
-    const prevVnode = vm._vnode
+    const prevVnode = vm._vnode // 之前的虚拟dom
     const restoreActiveInstance = setActiveInstance(vm)
-    vm._vnode = vnode
+    vm._vnode = vnode // 当前要更新的虚拟dom
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
+      // 最开始渲染时，没有旧的虚拟dom，则把当前的要更新的虚拟dom传入—__patch__
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
+      // 如果有旧的虚拟dom，则用当前的虚拟dom 更新 旧虚拟dom
       // updates
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
@@ -148,6 +156,13 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+/**
+ *
+ * @param {*} vm Vue实例
+ * @param {*} el
+ * @param {*} hydrating
+ * @returns
+ */
 export function mountComponent (
   vm: Component,
   el: ?Element,

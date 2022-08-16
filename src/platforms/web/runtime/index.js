@@ -34,10 +34,17 @@ extend(Vue.options.components, platformComponents)
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
+/**
+ * 在Vue构造函数的原型上添加$mount
+ * @param {*} el
+ * @param {*} hydrating
+ * @returns
+ */
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 如果是浏览器环境，el是一个dom对象
   el = el && inBrowser ? query(el) : undefined
   return mountComponent(this, el, hydrating)
 }
