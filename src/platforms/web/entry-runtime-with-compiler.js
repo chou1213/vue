@@ -17,12 +17,16 @@ const idToTemplate = cached(id => {
 const mount = Vue.prototype.$mount
 
 /**
- * @description: 重写Vue原型上的mount方法
- * 该方法在原型链_init里面调用
- * @return {*}
+ * 重写Vue原型上的mount方法，该方法在原型链_init里面调用
+ * @param {*} el 实例化Vue，传入的el，字符串类型或者元素类型
+ * @param {*} hydrating
+ * @returns
  */
 Vue.prototype.$mount = function (el?: string | Element, hydrating?: boolean): Component {
-  // 如果el存在，则把el字符串转成dom对象
+  // 当el存在
+  // 如果el是字符串, 就在document找到el，返回element类型
+  // 如果el是字符串，但是不在document中，则创建tag是div的Element类型，然后返回
+  // 如果el已经是Element类型则直接返回
   el = el && query(el)
 
   /* istanbul ignore if */
@@ -37,10 +41,10 @@ Vue.prototype.$mount = function (el?: string | Element, hydrating?: boolean): Co
   const options = this.$options
   // resolve template/el and convert to render function
   if (!options.render) {
-    // 当实例化Vue的option配置没有render函数
+    // 当option配置没有render函数
     let template = options.template
     if (template) {
-      // 当实例化Vue的option配置有template模板
+      // 当option配置有template模板
       if (typeof template === 'string') {
         if (template.charAt(0) === '#') {
           template = idToTemplate(template)
@@ -62,8 +66,8 @@ Vue.prototype.$mount = function (el?: string | Element, hydrating?: boolean): Co
       }
     } else if (el) {
       /**
-       * 当实例化Vue的option配置没有template，但是有el
-       * 把dom对象转成html字符串
+       * 当option配置没有template，但是有el
+       * 把el，Element类型转成模板字符串
        */
       template = getOuterHTML(el)
     }
@@ -73,9 +77,7 @@ Vue.prototype.$mount = function (el?: string | Element, hydrating?: boolean): Co
         mark('compile')
       }
 
-      /**
-       *
-       */
+      // 把模板字符串转成render函数
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,

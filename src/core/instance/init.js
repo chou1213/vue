@@ -20,11 +20,11 @@ let uid = 0
 export function initMixin (Vue: Class<Component>) {
   /**
    * @description: 给Vue实例添加_uid, _isVue, $options, _renderProxy, _self，调用了Vue原型上的$mount
-   * @param {*} options
-   * @return {*}
+   * @param {*} options 实例化Vue传入的对象
+   * @return {*} undefined
    */
   Vue.prototype._init = function (options?: Object) {
-    // Vue的实例
+    // Vue的实例赋值给局部变量vm
     const vm: Component = this
 
     // 每个Vue实例都有的uid
@@ -55,7 +55,6 @@ export function initMixin (Vue: Class<Component>) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
-      // 开发环境
       initProxy(vm)
     } else {
       // 生产环境，把Vue实例保存到实例的_rnderProxy

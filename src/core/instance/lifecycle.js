@@ -75,13 +75,16 @@ export function lifecycleMixin (Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
-    const prevVnode = vm._vnode // 之前的虚拟dom
+    const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
-    vm._vnode = vnode // 当前要更新的虚拟dom
+    vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
-      // 最开始渲染时，没有旧的虚拟dom，则把当前的要更新的虚拟dom传入—__patch__
+      // 初次渲染时
+      // prevVnode === null
+      // vm.$el opitons.el 转成了dom对象，div#app
+      // vnode options.render()返回的虚拟dom
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
@@ -157,9 +160,9 @@ export function lifecycleMixin (Vue: Class<Component>) {
 }
 
 /**
- *
+ * 挂载
  * @param {*} vm Vue实例
- * @param {*} el
+ * @param {*} el option.el，已经被转成Element类型
  * @param {*} hydrating
  * @returns
  */
@@ -168,7 +171,7 @@ export function mountComponent (
   el: ?Element,
   hydrating?: boolean
 ): Component {
-  vm.$el = el
+  vm.$el = el // 把dom对象挂载到$el
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
@@ -189,6 +192,7 @@ export function mountComponent (
       }
     }
   }
+  // 挂载前调用beforeMount钩子函数
   callHook(vm, 'beforeMount')
 
   let updateComponent
@@ -212,6 +216,8 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
+      // vm._render()返回vnode
+      // 把vnode挂载到dom树
       vm._update(vm._render(), hydrating)
     }
   }
@@ -232,6 +238,7 @@ export function mountComponent (
   // mounted is called for render-created child components in its inserted hook
   if (vm.$vnode == null) {
     vm._isMounted = true
+    // 挂载完，调用mounted钩子函数
     callHook(vm, 'mounted')
   }
   return vm

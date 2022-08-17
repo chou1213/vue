@@ -32,6 +32,12 @@ export const emptyNode = new VNode('', {}, [])
 
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
 
+/**
+ * @description: 判断两个vnode是否相同
+ * @param {*} a
+ * @param {*} b
+ * @return {*} Boolean
+ */
 function sameVnode (a, b) {
   return (
     a.key === b.key && (
@@ -127,6 +133,17 @@ export function createPatchFunction (backend) {
 
   let creatingElmInVPre = 0
 
+  /**
+   *
+   * @param {*} vnode 虚拟dom
+   * @param {*} insertedVnodeQueue 数组
+   * @param {*} parentElm oldVnode的父元素
+   * @param {*} refElm
+   * @param {*} nested
+   * @param {*} ownerArray
+   * @param {*} index
+   * @returns
+   */
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -169,6 +186,7 @@ export function createPatchFunction (backend) {
         }
       }
 
+      // vnode转成dom，并挂载到vnode.elm
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
@@ -194,10 +212,21 @@ export function createPatchFunction (backend) {
           insert(parentElm, vnode.elm, refElm)
         }
       } else {
+        // 把children转成正式dom，挂载vnode.elm
         createChildren(vnode, children, insertedVnodeQueue)
         if (isDef(data)) {
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
+        // parentElm 是oldVnode的父元素
+        // vnode.elm 需要被渲染在页面的虚拟dom的真实dom
+        // refElm 是oldVnode下一个兄弟元素
+        // refElm插入vnode.elm
+        // 最后结构是这样的
+        // <parent>
+        //   <oldVnode></oldVnode>
+        //   <vnode.elm></vnode.elm>
+        //   <refElm></refElm>
+        // </parent>
         insert(parentElm, vnode.elm, refElm)
       }
 
@@ -276,10 +305,24 @@ export function createPatchFunction (backend) {
     insert(parentElm, vnode.elm, refElm)
   }
 
+  /**
+   * @description:
+   * @param {*} parent 新插入节点的父节点，一般是oldVnode的父节点
+   * @param {*} elm 用于插入的节点
+   * @param {*} ref 将要插在这个节点之前, 一般是oldVnode的下一个兄弟节点
+   * @return {*}
+   */
   function insert (parent, elm, ref) {
     if (isDef(parent)) {
       if (isDef(ref)) {
         if (nodeOps.parentNode(ref) === parent) {
+          // 说明ref的父节点与oldVnode的父节点相同，oldVnode和ref是兄弟元素
+          // 类似这样的结构
+          // <parent>
+          //   <oldvnode></oldvnode>
+          //   <ref></ref>
+          // </parent>
+          // 所以在ref前插入elm
           nodeOps.insertBefore(parent, elm, ref)
         }
       } else {
@@ -288,12 +331,21 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * @description: 遍历children，把每项的虚拟dom转成正式dom，然后挂载到vnode.elm
+   * @param {*} vnode
+   * @param {*} children
+   * @param {*} insertedVnodeQueue
+   * @return {*}
+   */
   function createChildren (vnode, children, insertedVnodeQueue) {
     if (Array.isArray(children)) {
+      // children是一个数组，不如[vnode,vnode...]
       if (process.env.NODE_ENV !== 'production') {
         checkDuplicateKeys(children)
       }
       for (let i = 0; i < children.length; ++i) {
+        // 把每个vnode真实的dom，vnode.elm是父dom相当于一个挂载点, 没有兄弟节点
         createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i)
       }
     } else if (isPrimitive(vnode.text)) {
@@ -365,6 +417,14 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * @description: 从parentElm移除旧的dom
+   * @param {*} parentElm dom对象
+   * @param {*} vnodes Vnode类型
+   * @param {*} startIdx
+   * @param {*} endIdx
+   * @return {*}
+   */
   function removeVnodes (parentElm, vnodes, startIdx, endIdx) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx]
@@ -706,15 +766,16 @@ export function createPatchFunction (backend) {
 
   /**
    * @description: 把虚拟dom更新到页面上
-   * @param {*} oldVnode 接收dom对象 或 旧的虚拟dom
-   * @param {*} vnode 要更新的虚拟dom
+   * @param {*} oldVnode
+   * @param {*} vnode
    * @param {*} hydrating
    * @param {*} removeOnly
    * @return {*}
    */
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
     if (isUndef(vnode)) {
-      // 旧虚拟dom有值，新虚拟dom没有值，调用旧虚拟dom的销毁的钩子函数
+      // oldVnode, vnode为空则什么都不执行
+      // vnode为空，则调用oldVnode销毁的钩子函数
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
     }
@@ -723,7 +784,7 @@ export function createPatchFunction (backend) {
     const insertedVnodeQueue = []
 
     if (isUndef(oldVnode)) {
-      // 旧虚拟dom不存在，标记为初始patch，
+      // oldVnode不存在，则说明没有挂载的容器
       // empty mount (likely as component), create new root element
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
@@ -731,7 +792,7 @@ export function createPatchFunction (backend) {
       // oldVnode存在
       const isRealElement = isDef(oldVnode.nodeType)
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
-        // oldVnode是虚拟节点，并且oldVnode和vnode是相同的节点
+        // oldVnode是Vnode，并且oldVnode和vnode是相同的节点
         // patch existing root node
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {
@@ -761,14 +822,20 @@ export function createPatchFunction (backend) {
           }
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
+          // 把oldVnode dom对象转成Vnode类型
           oldVnode = emptyNodeAt(oldVnode)
         }
 
         // replacing existing element
-        const oldElm = oldVnode.elm
-        const parentElm = nodeOps.parentNode(oldElm)
+        const oldElm = oldVnode.elm // oldVnode的dom对象
+        const parentElm = nodeOps.parentNode(oldElm) // oldVndoe dom对象的父节点
 
-        // create new node
+        // create new nodecreateElm
+        // vnode是传入的虚拟dom
+        // insertedVnodeQueue 空数组
+        // parentElm 旧虚拟dom的父元素，el的父元素是body
+        // nodeOps.nextSibling(oldElm) oldVnode下一个兄弟元素，el的兄弟元素
+        // 调用完这个函数后，vnode已经挂载到document了
         createElm(
           vnode,
           insertedVnodeQueue,
@@ -809,8 +876,11 @@ export function createPatchFunction (backend) {
           }
         }
 
+        // 销毁旧节点
         // destroy old node
         if (isDef(parentElm)) {
+          // 如果parentElm存在，这里是body
+          // oldVnode 需要被移除虚拟dom
           removeVnodes(parentElm, [oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {
           invokeDestroyHook(oldVnode)

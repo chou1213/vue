@@ -2,12 +2,20 @@
 
 import { namespaceMap } from 'web/util/index'
 
+/**
+ * @description:
+ * @param {*} tagName 标签名
+ * @param {*} vnode 虚拟dom
+ * @return {*}
+ */
 export function createElement (tagName: string, vnode: VNode): Element {
+  // 根据标签名创建dom
   const elm = document.createElement(tagName)
   if (tagName !== 'select') {
     return elm
   }
   // false or null will remove the attribute but undefined will not
+  // 给dom添加属性
   if (vnode.data && vnode.data.attrs && vnode.data.attrs.multiple !== undefined) {
     elm.setAttribute('multiple', 'multiple')
   }
@@ -26,6 +34,13 @@ export function createComment (text: string): Comment {
   return document.createComment(text)
 }
 
+/**
+ * @description: 插入节点
+ * @param {*} parentNode 新插入节点的父节点
+ * @param {*} newNode 用于插入的节点
+ * @param {*} referenceNode 将要插在这个节点之前
+ * @return {*}
+ */
 export function insertBefore (parentNode: Node, newNode: Node, referenceNode: Node) {
   parentNode.insertBefore(newNode, referenceNode)
 }

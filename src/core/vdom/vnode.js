@@ -2,10 +2,10 @@
 
 export default class VNode {
   tag: string | void; // 标签
-  data: VNodeData | void;
+  data: VNodeData | void; // VNodeData类型对象，它的参数一般dom的属性，比如key，class，style
   children: ?Array<VNode>;
   text: string | void;
-  elm: Node | void;
+  elm: Node | void; // 虚拟dom对应的真实dom
   ns: string | void;
   context: Component | void; // rendered in this component's scope
   key: string | number | void;

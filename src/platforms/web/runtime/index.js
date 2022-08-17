@@ -34,9 +34,10 @@ extend(Vue.options.components, platformComponents)
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
+// 在Vue构造函数的原型上添加$mount
 /**
- * 在Vue构造函数的原型上添加$mount
- * @param {*} el
+ * 挂载
+ * @param {*} el 接受Elemen类型，通过opition.el转成Element类型
  * @param {*} hydrating
  * @returns
  */

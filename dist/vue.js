@@ -355,6 +355,7 @@
 
   var SSR_ATTR = 'data-server-rendered';
 
+  // Vue option的核心属性名
   var ASSET_TYPES = [
     'component',
     'directive',
@@ -1505,6 +1506,7 @@
     }
   }
 
+
   function assertObjectType (name, value, vm) {
     if (!isPlainObject(value)) {
       warn(
@@ -1519,11 +1521,15 @@
    * Merge two option objects into a new one.
    * Core utility used in both instantiation and inheritance.
    */
-  function mergeOptions (
-    parent,
-    child,
-    vm
-  ) {
+
+  /**
+   * @description: 合并两个对象
+   * @param {*} parent
+   * @param {*} child
+   * @param {*} vm
+   * @return {*} 返回合并后的对象
+   */
+  function mergeOptions (parent, child, vm) {
     {
       checkComponents(child);
     }
@@ -2090,6 +2096,11 @@
       }
     };
 
+    /**
+     * @description: 给实例的_renderProxy赋值
+     * @param {*} vm Vue实例
+     * @return {*}
+     */
     initProxy = function initProxy (vm) {
       if (hasProxy) {
         // determine which proxy handler to use
@@ -2561,6 +2572,11 @@
 
   /*  */
 
+  /**
+   * @description: 在Vue实例添加_evnet, _hasHookEvent
+   * @param {*} vm Vue构造函数
+   * @return {*}
+   */
   function initEvents (vm) {
     vm._events = Object.create(null);
     vm._hasHookEvent = false;
@@ -2601,6 +2617,11 @@
     target = undefined;
   }
 
+  /**
+   * @description: 给Vue原型添加$on, $once, $off, $emit
+   * @param {*} Vue
+   * @return {*}
+   */
   function eventsMixin (Vue) {
     var hookRE = /^hook:/;
     Vue.prototype.$on = function (event, fn) {
@@ -2775,6 +2796,11 @@
     }
   }
 
+  /**
+   * @description: 初始实例的生命周期，在实例添加$parent，$root，$children，$refs，_watcher，_inactive，_directInactive_isMounted，_isDestroyed，_isBeingDestroyed
+   * @param {*} vm Vue 实例
+   * @return {*}
+   */
   function initLifecycle (vm) {
     var options = vm.$options;
 
@@ -2801,7 +2827,18 @@
     vm._isBeingDestroyed = false;
   }
 
+  /**
+   * @description: 在Vue的原型上添加_update，$forceUpdate, $destroy
+   * @param {*} Vue
+   * @return {*}
+   */
   function lifecycleMixin (Vue) {
+    /**
+     * @description: 把虚拟dom渲染到页面上
+     * @param {*} vnode 调用option.render()返回的虚拟dom
+     * @param {*} hydrating
+     * @return {*}
+     */
     Vue.prototype._update = function (vnode, hydrating) {
       var vm = this;
       var prevEl = vm.$el;
@@ -2811,9 +2848,14 @@
       // Vue.prototype.__patch__ is injected in entry points
       // based on the rendering backend used.
       if (!prevVnode) {
+        // 初次渲染时
+        // prevVnode === null
+        // vm.$el opitons.el 转成了dom对象，div#app
+        // vnode options.render()返回的虚拟dom
         // initial render
         vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */);
       } else {
+        // 如果有旧的虚拟dom，则用当前的虚拟dom 更新 旧虚拟dom
         // updates
         vm.$el = vm.__patch__(prevVnode, vnode);
       }
@@ -2884,6 +2926,12 @@
     };
   }
 
+  /**
+   * @param {*} vm Vue实例
+   * @param {*} el options配置的el，已经被转成dom对象
+   * @param {*} hydrating
+   * @returns
+   */
   function mountComponent (
     vm,
     el,
@@ -3075,6 +3123,12 @@
     }
   }
 
+  /**
+   * @description: 调用实例的钩子函数
+   * @param {*} vm
+   * @param {*} hook
+   * @return {*}
+   */
   function callHook (vm, hook) {
     // #7573 disable dep collection when invoking lifecycle hooks
     pushTarget();
@@ -4737,6 +4791,11 @@
 
   /*  */
 
+  /**
+   * @description: 给实例添加_vnode, _staticTree, $slot, $scopedSlots, _c ,$createElement, $attr, $listeners
+   * @param {*} vm
+   * @return {*}
+   */
   function initRender (vm) {
     vm._vnode = null; // the root of the child tree
     vm._staticTrees = null; // v-once cached trees
@@ -4782,6 +4841,10 @@
       return nextTick(fn, this)
     };
 
+    /**
+     * 获取option.render的虚拟dom，并给虚拟dom设置parent，然后返回vnode
+     * @returns 返回option.render()的虚拟dom
+     */
     Vue.prototype._render = function () {
       var vm = this;
       var ref = vm.$options;
@@ -4801,6 +4864,10 @@
       // render self
       var vnode;
       try {
+        // 调用option.render函数
+        // render函数，可能是在实例化的时候定义，或者是通过template转成render
+        // render函数的this指向vm._renderProxy就是Vue实例
+        // 在定义render函数，第一个参数h，就是vm.$createElement，用来生成虚拟dom
         vnode = render.call(vm._renderProxy, vm.$createElement);
       } catch (e) {
         handleError(e, vm, "render");
@@ -4834,6 +4901,7 @@
         vnode = createEmptyVNode();
       }
       // set parent
+      // 给虚拟dom设父虚拟dom
       vnode.parent = _parentVnode;
       return vnode
     };
@@ -4844,14 +4912,21 @@
   var uid$2 = 0;
 
   /**
-   * @description: 给Vue的原型添加_init方法
+   * @description: 给Vue的原型添加_init
    * @param {*} Vue
    * @return {*}
    */
   function initMixin (Vue) {
+    /**
+     * @description: 给Vue实例添加_uid, _isVue, $options, _renderProxy, _self，调用了Vue原型上的$mount
+     * @param {*} options
+     * @return {*}
+     */
     Vue.prototype._init = function (options) {
+      // Vue的实例
       var vm = this;
-      // a uid
+
+      // 每个Vue实例都有的uid
       vm._uid = uid$2++;
 
       var startTag, endTag;
@@ -4881,8 +4956,10 @@
       {
         initProxy(vm);
       }
+
       // expose real self
       vm._self = vm;
+
       initLifecycle(vm);
       initEvents(vm);
       initRender(vm);
@@ -4899,6 +4976,7 @@
         measure(("vue " + (vm._name) + " init"), startTag, endTag);
       }
 
+      // 如果el存在，则调用$mount
       if (vm.$options.el) {
         vm.$mount(vm.$options.el);
       }
@@ -4972,32 +5050,63 @@
     ) {
       warn('Vue is a constructor and should be called with the `new` keyword');
     }
+
+    // 实例化Vue的时候，会调用原型链上的_init方法
     this._init(options);
   }
 
+  // 初始化相关的方法
   initMixin(Vue);
+
+  // 和状态相关的方法
   stateMixin(Vue);
+
+  // 和事件相关的方法
   eventsMixin(Vue);
+
+  // 和生命周期相关的方法
   lifecycleMixin(Vue);
+
+  // 和渲染相关的方法
   renderMixin(Vue);
 
   /*  */
 
+  /**
+   * @description: 給Vue添加静态方法use
+   * @param {*} Vue
+   * @return {*}
+   */
   function initUse (Vue) {
+    /**
+     * @description:
+     * @param {*} plugin 插件可以是函数或对象类型
+     * @return {*} Vue构造函数
+     */
     Vue.use = function (plugin) {
+      // this.__installedPlugins 等价于Vue._installedPlugins
+      // 如果this._installedPlugins不存在，则赋值为空数组
       var installedPlugins = (this._installedPlugins || (this._installedPlugins = []));
+
+      // 判断this._installedPlugins是否有对应的插件，如果有则返回Vue构造函数
       if (installedPlugins.indexOf(plugin) > -1) {
         return this
       }
 
       // additional parameters
+      // 把伪数组转成为真实数组
       var args = toArray(arguments, 1);
       args.unshift(this);
+
       if (typeof plugin.install === 'function') {
+        // 如果plugin.install是函数类型，则调用install方法
         plugin.install.apply(plugin, args);
       } else if (typeof plugin === 'function') {
+        // 如果plugin是函数，则直接调用
         plugin.apply(null, args);
       }
+
+      // 把plugin插件添加到this._installedPlugins数组中
       installedPlugins.push(plugin);
       return this
     };
@@ -5005,7 +5114,17 @@
 
   /*  */
 
+  /**
+   * @description: 给Vue添加静态方法mixin
+   * @param {*} Vue
+   * @return {*}
+   */
   function initMixin$1 (Vue) {
+    /**
+     * @description: 把mixin合并到Vue.options
+     * @param {*} mixin 对象类型
+     * @return {*}
+     */
     Vue.mixin = function (mixin) {
       this.options = mergeOptions(this.options, mixin);
       return this
@@ -5014,6 +5133,11 @@
 
   /*  */
 
+  /**
+   * @description: 给Vue添加静态方法extend,
+   * @param {*} Vue
+   * @return {*}
+   */
   function initExtend (Vue) {
     /**
      * Each instance constructor, including Vue, has a unique
@@ -5026,6 +5150,7 @@
     /**
      * Class inheritance
      */
+    // 基于传入的options返回一个组件的构造函数
     Vue.extend = function (extendOptions) {
       extendOptions = extendOptions || {};
       var Super = this;
@@ -5106,6 +5231,11 @@
 
   /*  */
 
+  /**
+   * @description: 给Vue添加静态方法component, directive, filter
+   * @param {*} Vue
+   * @return {*}
+   */
   function initAssetRegisters (Vue) {
     /**
      * Create asset registration methods.
@@ -5272,6 +5402,11 @@
 
   /*  */
 
+  /**
+   * @description: 给Vue添加静态成员config, set, delete, nextTick, options, observable, util
+   * @param {*} Vue 构造函数
+   * @return {*}
+   */
   function initGlobalAPI (Vue) {
     // config
     var configDef = {};
@@ -5305,7 +5440,10 @@
       return obj
     };
 
+    // 添加options成员，并赋值为空对象
     Vue.options = Object.create(null);
+
+    // 在options添加components, directives, filters属性，并赋值为空对象
     ASSET_TYPES.forEach(function (type) {
       Vue.options[type + 's'] = Object.create(null);
     });
@@ -5314,6 +5452,7 @@
     // components with in Weex's multi-instance scenarios.
     Vue.options._base = Vue;
 
+    // 把keep-alive组件合并到Vue.options.components
     extend(Vue.options.components, builtInComponents);
 
     initUse(Vue);
@@ -5556,29 +5695,45 @@
   /**
    * Query an element selector if it's not an element already.
    */
+  /**
+   * @description: 在document找到el，如果没有则创建一个div
+   * @param {*} el 字符串或者是dom对象
+   * @return {*} 返回dom对象
+   */
   function query (el) {
     if (typeof el === 'string') {
+      // 如果el是字符串，则在document查找对应的dom元素，能找到就返回dom对象
       var selected = document.querySelector(el);
       if (!selected) {
          warn(
           'Cannot find element: ' + el
         );
+        // 如果document没有找到el，则创建div元素，并返回
         return document.createElement('div')
       }
       return selected
     } else {
+      // 如果el是一个dom对象，则直接返回
       return el
     }
   }
 
   /*  */
 
+  /**
+   * @description:
+   * @param {*} tagName 标签名
+   * @param {*} vnode 虚拟dom
+   * @return {*}
+   */
   function createElement$1 (tagName, vnode) {
+    // 根据标签名创建dom
     var elm = document.createElement(tagName);
     if (tagName !== 'select') {
       return elm
     }
     // false or null will remove the attribute but undefined will not
+    // 给dom添加属性
     if (vnode.data && vnode.data.attrs && vnode.data.attrs.multiple !== undefined) {
       elm.setAttribute('multiple', 'multiple');
     }
@@ -5597,6 +5752,13 @@
     return document.createComment(text)
   }
 
+  /**
+   * @description: 插入节点
+   * @param {*} parentNode 新插入节点的父节点
+   * @param {*} newNode 用于插入的节点
+   * @param {*} referenceNode 将要插在这个节点之前
+   * @return {*}
+   */
   function insertBefore (parentNode, newNode, referenceNode) {
     parentNode.insertBefore(newNode, referenceNode);
   }
@@ -5705,6 +5867,12 @@
 
   var hooks = ['create', 'activate', 'update', 'remove', 'destroy'];
 
+  /**
+   * @description: 判断两个vnode是否相同
+   * @param {*} a
+   * @param {*} b
+   * @return {*} Boolean
+   */
   function sameVnode (a, b) {
     return (
       a.key === b.key && (
@@ -5756,6 +5924,11 @@
       }
     }
 
+    /**
+     * @description: 把dom对象转成vnode
+     * @param {*} elm dom对象
+     * @return {*}
+     */
     function emptyNodeAt (elm) {
       return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
     }
@@ -5796,6 +5969,17 @@
 
     var creatingElmInVPre = 0;
 
+    /**
+     *
+     * @param {*} vnode 虚拟dom
+     * @param {*} insertedVnodeQueue 数组
+     * @param {*} parentElm oldVnode的父元素
+     * @param {*} refElm
+     * @param {*} nested
+     * @param {*} ownerArray
+     * @param {*} index
+     * @returns
+     */
     function createElm (
       vnode,
       insertedVnodeQueue,
@@ -5823,6 +6007,7 @@
       var children = vnode.children;
       var tag = vnode.tag;
       if (isDef(tag)) {
+        // 虚拟dom有tag
         {
           if (data && data.pre) {
             creatingElmInVPre++;
@@ -5837,6 +6022,7 @@
           }
         }
 
+        // vnode转成dom，并挂载到vnode.elm
         vnode.elm = vnode.ns
           ? nodeOps.createElementNS(vnode.ns, tag)
           : nodeOps.createElement(tag, vnode);
@@ -5844,10 +6030,21 @@
 
         /* istanbul ignore if */
         {
+          // 把children转成正式dom，挂载vnode.elm
           createChildren(vnode, children, insertedVnodeQueue);
           if (isDef(data)) {
             invokeCreateHooks(vnode, insertedVnodeQueue);
           }
+          // parentElm 是oldVnode的父元素
+          // vnode.elm 需要被渲染在页面的虚拟dom的真实dom
+          // refElm 是oldVnode下一个兄弟元素
+          // refElm插入vnode.elm
+          // 最后结构是这样的
+          // <parent>
+          //   <oldVnode></oldVnode>
+          //   <vnode.elm></vnode.elm>
+          //   <refElm></refElm>
+          // </parent>
           insert(parentElm, vnode.elm, refElm);
         }
 
@@ -5855,6 +6052,7 @@
           creatingElmInVPre--;
         }
       } else if (isTrue(vnode.isComment)) {
+        // 虚拟dom是一个注释节点
         vnode.elm = nodeOps.createComment(vnode.text);
         insert(parentElm, vnode.elm, refElm);
       } else {
@@ -5925,10 +6123,24 @@
       insert(parentElm, vnode.elm, refElm);
     }
 
+    /**
+     * @description:
+     * @param {*} parent 新插入节点的父节点，一般是oldVnode的父节点
+     * @param {*} elm 用于插入的节点
+     * @param {*} ref 将要插在这个节点之前, 一般是oldVnode的下一个兄弟节点
+     * @return {*}
+     */
     function insert (parent, elm, ref) {
       if (isDef(parent)) {
         if (isDef(ref)) {
           if (nodeOps.parentNode(ref) === parent) {
+            // 说明ref的父节点与oldVnode的父节点相同，oldVnode和ref是兄弟元素
+            // 类似这样的结构
+            // <parent>
+            //   <oldvnode></oldvnode>
+            //   <ref></ref>
+            // </parent>
+            // 所以在ref前插入elm
             nodeOps.insertBefore(parent, elm, ref);
           }
         } else {
@@ -5937,12 +6149,21 @@
       }
     }
 
+    /**
+     * @description: 遍历children，把每项的虚拟dom转成正式dom，然后挂载到vnode.elm
+     * @param {*} vnode
+     * @param {*} children
+     * @param {*} insertedVnodeQueue
+     * @return {*}
+     */
     function createChildren (vnode, children, insertedVnodeQueue) {
       if (Array.isArray(children)) {
+        // children是一个数组，不如[vnode,vnode...]
         {
           checkDuplicateKeys(children);
         }
         for (var i = 0; i < children.length; ++i) {
+          // 把每个vnode真实的dom，vnode.elm是父dom相当于一个挂载点, 没有兄弟节点
           createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i);
         }
       } else if (isPrimitive(vnode.text)) {
@@ -6014,6 +6235,14 @@
       }
     }
 
+    /**
+     * @description: 从parentElm移除旧的dom
+     * @param {*} parentElm dom对象
+     * @param {*} vnodes Vnode类型
+     * @param {*} startIdx
+     * @param {*} endIdx
+     * @return {*}
+     */
     function removeVnodes (parentElm, vnodes, startIdx, endIdx) {
       for (; startIdx <= endIdx; ++startIdx) {
         var ch = vnodes[startIdx];
@@ -6355,8 +6584,18 @@
       }
     }
 
+    /**
+     * @description: 把虚拟dom更新到页面上
+     * @param {*} oldVnode
+     * @param {*} vnode
+     * @param {*} hydrating
+     * @param {*} removeOnly
+     * @return {*}
+     */
     return function patch (oldVnode, vnode, hydrating, removeOnly) {
       if (isUndef(vnode)) {
+        // oldVnode, vnode为空则什么都不执行
+        // vnode为空，则调用oldVnode销毁的钩子函数
         if (isDef(oldVnode)) { invokeDestroyHook(oldVnode); }
         return
       }
@@ -6365,20 +6604,25 @@
       var insertedVnodeQueue = [];
 
       if (isUndef(oldVnode)) {
+        // oldVnode不存在，则说明没有挂载的容器
         // empty mount (likely as component), create new root element
         isInitialPatch = true;
         createElm(vnode, insertedVnodeQueue);
       } else {
+        // oldVnode存在
         var isRealElement = isDef(oldVnode.nodeType);
         if (!isRealElement && sameVnode(oldVnode, vnode)) {
+          // oldVnode是Vnode，并且oldVnode和vnode是相同的节点
           // patch existing root node
           patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly);
         } else {
           if (isRealElement) {
+            // oldVnode是一个真实dom对象
             // mounting to a real element
             // check if this is server-rendered content and if we can perform
             // a successful hydration.
             if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
+              // oldVnode是一个元素节点，并且有data-server-rendered属性，则移除data-server-rendered属性
               oldVnode.removeAttribute(SSR_ATTR);
               hydrating = true;
             }
@@ -6398,14 +6642,20 @@
             }
             // either not server-rendered, or hydration failed.
             // create an empty node and replace it
+            // 把oldVnode dom对象转成Vnode类型
             oldVnode = emptyNodeAt(oldVnode);
           }
 
           // replacing existing element
-          var oldElm = oldVnode.elm;
-          var parentElm = nodeOps.parentNode(oldElm);
+          var oldElm = oldVnode.elm; // oldVnode的dom对象
+          var parentElm = nodeOps.parentNode(oldElm); // oldVndoe dom对象的父节点
 
           // create new node
+          // vnode是传入的虚拟dom
+          // insertedVnodeQueue 空数组
+          // parentElm 旧虚拟dom的父元素，el的父元素是body
+          // nodeOps.nextSibling(oldElm) oldVnode下一个兄弟元素，el的兄弟元素
+          // 调用完这个函数后，vnode已经挂载到document了
           createElm(
             vnode,
             insertedVnodeQueue,
@@ -6446,8 +6696,11 @@
             }
           }
 
+          // 销毁旧节点
           // destroy old node
           if (isDef(parentElm)) {
+            // 如果parentElm存在，这里是body
+            // oldVnode 需要被移除虚拟dom
             removeVnodes(parentElm, [oldVnode], 0, 0);
           } else if (isDef(oldVnode.tag)) {
             invokeDestroyHook(oldVnode);
@@ -8914,10 +9167,17 @@
   Vue.prototype.__patch__ = inBrowser ? patch : noop;
 
   // public mount method
+  /**
+   * 在Vue构造函数的原型上添加$mount
+   * @param {*} el
+   * @param {*} hydrating
+   * @returns
+   */
   Vue.prototype.$mount = function (
     el,
     hydrating
   ) {
+    // 如果是浏览器环境，el是一个dom对象
     el = el && inBrowser ? query(el) : undefined;
     return mountComponent(this, el, hydrating)
   };
@@ -11648,13 +11908,18 @@
   });
 
   var mount = Vue.prototype.$mount;
-  Vue.prototype.$mount = function (
-    el,
-    hydrating
-  ) {
+
+  /**
+   * @description: 重写Vue原型上的mount方法
+   * 该方法在原型链_init里面调用
+   * @return {*}
+   */
+  Vue.prototype.$mount = function (el, hydrating) {
+    // 如果el存在，则把el字符串转成dom对象
     el = el && query(el);
 
     /* istanbul ignore if */
+    // el不可以是body节点和html节点
     if (el === document.body || el === document.documentElement) {
        warn(
         "Do not mount Vue to <html> or <body> - mount to normal elements instead."
@@ -11665,8 +11930,10 @@
     var options = this.$options;
     // resolve template/el and convert to render function
     if (!options.render) {
+      // 当实例化Vue的option配置没有render函数
       var template = options.template;
       if (template) {
+        // 当实例化Vue的option配置有template模板
         if (typeof template === 'string') {
           if (template.charAt(0) === '#') {
             template = idToTemplate(template);
@@ -11687,6 +11954,10 @@
           return this
         }
       } else if (el) {
+        /**
+         * 当实例化Vue的option配置没有template，但是有el
+         * 把dom对象转成html字符串
+         */
         template = getOuterHTML(el);
       }
       if (template) {
@@ -11695,6 +11966,9 @@
           mark('compile');
         }
 
+        /**
+         *
+         */
         var ref = compileToFunctions(template, {
           outputSourceRange: "development" !== 'production',
           shouldDecodeNewlines: shouldDecodeNewlines,
